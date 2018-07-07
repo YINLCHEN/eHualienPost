@@ -8,8 +8,10 @@ import StepContent from '@material-ui/core/StepContent';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import classNames from 'classnames';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
+import classNames from 'classnames';
+import axios from 'axios';
 import ChipComponent from './ChipComponent';
 import AmountComponent from './AmountComponent';
 import { connect } from 'react-redux';
@@ -43,7 +45,7 @@ function getSteps() {
 function getStepContent(step, classes) {
     switch (step) {
         case 0:
-            return <ChipComponent />;
+            return <ChipComponent mode="dailyinput" />;
         case 1:
             return <AmountComponent />;
         case 2:
@@ -59,6 +61,8 @@ class App extends React.Component {
         activeStep: 0,
         postID: null,
         postName: null,
+        done: false,
+        todayDateTime: null,
     };
 
     componentWillReceiveProps(nextProps) {
@@ -82,12 +86,25 @@ class App extends React.Component {
         });
 
         if (this.state.activeStep === 2) {
-            console.log('Date: ' + Date())
-            console.log('PostID: ' + this.state.postID)
-            console.log('PostName: ' + this.state.postName)
-            console.log('Amount: ' + this.props.Amount)
-            console.log('Count: ' + this.props.Count)
-            console.log('Comment: ' + this.props.Comment)
+            var dateTime = new Date();
+            dateTime.setHours(dateTime.getHours()+8);
+            const todayDateTime = dateTime.toISOString().slice(0, 19).replace('T', ' ');
+
+            axios.get('/api/v1/insertDailyInput/', {
+                params: {
+                    post_id: this.state.postID,
+                    case_amount: this.props.Amount,
+                    case_count: this.props.Count,
+                    case_comment: this.props.Comment,
+                    created_date: todayDateTime
+                }
+            })
+                .then(res => {
+                    this.setState({
+                        done: true,
+                        todayDateTime: todayDateTime
+                    })
+                })
         }
     };
 
@@ -102,6 +119,7 @@ class App extends React.Component {
             activeStep: 0,
             postID: null,
             postName: null,
+            done: false,
         });
     };
 
@@ -149,7 +167,9 @@ class App extends React.Component {
                                             amount={this.props.Amount}
                                             count={this.props.Count}
                                             comment={this.props.Comment}
+                                            done={this.state.done}
                                         /> : null}
+                                    {activeStep === 3 && index === 2 ? <RenderStep3 done={this.state.done} todayDateTime={this.state.todayDateTime} /> : null}
                                 </StepLabel>
                                 <StepContent>
                                     <span>{getStepContent(index, classes)}</span>
@@ -161,7 +181,10 @@ class App extends React.Component {
                         );
                     })}
                 </Stepper>
-                {activeStep === steps.length && (
+                {activeStep === steps.length && !this.state.done && (
+                    <LinearProgress color="secondary" />
+                )}
+                {activeStep === steps.length && this.state.done && (
                     <Paper square elevation={0} className={classes.resetContainer}>
                         <Typography>本日申報完畢！</Typography>
                         <Button onClick={this.handleReset} className={classes.button}>
@@ -173,12 +196,21 @@ class App extends React.Component {
         );
     }
 }
+
 function RenderStep2(props) {
     return (
         <div>
-            金額： {props.amount} 元<br />
-            件數： {props.count} 件<br />
-            備註： {props.comment}
+            金額： {props.amount} 元 <br />
+            件數： {props.count} 件 <br />
+            備註： {props.comment} <br />
+        </div>
+    );
+}
+
+function RenderStep3(props) {
+    return (
+        <div>
+            {props.done ? `申報時間：` + props.todayDateTime : null}
         </div>
     );
 }

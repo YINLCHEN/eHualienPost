@@ -1,151 +1,69 @@
 const express = require('express');
-const path = require('path');
 const app = express();
-var mongoose = require('mongoose');
+const path = require('path');
+const { Pool, Client } = require('pg');
+const connectionString = process.env.DATABASE_URL || 'postgres://eqnmvgipewyrfb:75fd48a70d531caaaac72395503be88acbfb7a99afb9b92c42d7879052967e26@ec2-54-243-193-227.compute-1.amazonaws.com:5432/d25naprtgh9cku?ssl=true';
 
-var uri = process.env.MONGOLAB_URI || 'mongodb://custom:!QAZ2wsx@ds153958.mlab.com:53958/heroku_8n50nr6t'
-mongoose.connect(uri, function(err, db){
-    if(err){
-        console.log('Unable to connect to the mongoDB server.', err);
-    }
-    else{
-        console.log('Connection established!', uri);
-    }
-});
-
-//DB Server
-//Schema
-//Portfolio
-var Schema = mongoose.Schema;
-var portfolioSchema = new Schema({
-    author: String,
-    image:  String,
-    title:  String,
-    body:   String,
-    link:   String,
-    date: { type: Date, default: Date.now },
-    hidden: Boolean,
-});
-
-//Resume
-var WorkNestedSchema = new Schema({
-    WorkTime: String,
-    Company:  String,
-    Describe: String
-});
-var ProjectNestedSchema = new Schema({
-    Title:    String,
-    Describe: String
-});
-var resumeSchema = new Schema({
-    Author: String,
-    About:  String,
-    WorkExperience:     [WorkNestedSchema],
-    ProjectExperience:  [ProjectNestedSchema],
-    Date: { type: Date, default: Date.now }
-});
-
-//Config
-var configSchema = new Schema({
-    Author: String,
-    Background: Number,
-    WelcomeMessage: [String]
-});
-
-//Log
-var logSchema = new Schema({
-    IP: String,
-    Date: { type: Date, default: Date.now }
-});
-
-//Skill
-var skillSchema = new Schema({
-    Classify:  String,
-    SkillName: String,
-    SkillLogo: String,
-    Tag:       String
-});
-
-//Model
-var Portfolio = mongoose.model('Portfolio', portfolioSchema);
-var Resume = mongoose.model('Resume', resumeSchema);
-var Config = mongoose.model('Config', configSchema);
-var Log = mongoose.model('Log', logSchema);
-var Skill = mongoose.model('Skill', skillSchema);
-
-//ODM
-var skill = new Skill({
-    Classify:  "Front",
-    SkillName: "React",
-    SkillLogo: "ReactLogo",
-    Tag:       ""
-})
-
-app.use(express.static('build'));
-
-app.get('/', function (req, res) {
-    res.sendFile(path.join('index.html'));
-});
-
-app.get('/index', function(req, res) {
-    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    if( ip != "123.194.133.19" && ip != "127.0.0.1" && ip.substring(0, 7) != "192.168" && ip != "114.42.89.178"){
-        var log = new Log({
-            IP: ip
-        })
-        log.save(function (err) {
-            if (err){
-                console.log ('Error on save!')
-            }
-            else{
-                console.log ('Save Success!')
-            }
-        });
-    }
-    
-    Config.find({}).exec(function(err, config) {
-        var map = {};
-    
-        config.forEach(function(config) {
-            map[config._id] = config;
-        });
-  
-        if(err){
-            res.send(err);
-            }
-        res.json(map);
+app.get('/api/v1/postoffice/', function (req, res) {
+    const client = new Client({
+        connectionString: connectionString,
     });
-});
 
-app.get('/portfolio', function(req, res) {
-    Portfolio.find({}).sort({"date":1}).exec(function(err, portfolios) {
-        var map = {};
-    
-        portfolios.forEach(function(portfolio) {
-            map[portfolio._id] = portfolio;
-        });
-  
-        if(err){
-            res.send(err);
-            }
-        res.json(map);
-    });
-});
+    client.connect();
+    const sql = 
+        `SELECT 
+            T1.postid, 
+            T1.postname, 
+            case COALESCE(T2.post_id,0)
+                when 0 then False
+                else True
+            end as isChecked
+            FROM "public"."postoffice" AS T1
+            LEFT JOIN ( SELECT post_id
+                FROM "public"."dailyinput" as daily
+                WHERE to_char(created_date, 'YYYY-MM-DD') = $1
+                AND created_date = (
+                    SELECT MAX(created_date)
+                    FROM "public"."dailyinput"
+                    WHERE post_id = daily.post_id
+                    )
+            ) AS T2 on T1.postid = T2.post_id;`;
+    const query = client.query(sql,[req.query.created_date], (err, clientRes) => {
 
-app.get('/resume', function(req, res) {
-    Resume.find({}).sort({"date":1}).exec(function(err, resume) {
-        var map = {};
-        
-        resume.forEach(function(resume) {
-            map[resume._id] = resume;
-        });
-  
-        if(err){
-            res.send(err);
+        client.end();
+
+        if (err) {
+            return err.stack
         }
-        res.json(map);
+
+        return res.json(clientRes.rows)
+    })
+});
+
+app.get('/api/v1/insertDailyInput/', function (req, res) {
+    var POST_ID = Number(req.query.post_id);
+    var CASE_AMOUNT = Number(req.query.case_amount);
+    var CASE_COUNT = Number(req.query.case_count);
+    var CASE_COMMENT = req.query.case_comment;
+    var CREATED_DATE = req.query.created_date;
+    console.log(CREATED_DATE)
+    const client = new Client({
+        connectionString: connectionString,
     });
-    
+
+    client.connect();
+
+    const query = client.query('INSERT INTO DAILYINPUT (POST_ID, CASE_AMOUNT, CASE_COUNT, CASE_COMMENT, CREATED_DATE) VALUES ($1, $2, $3, $4, $5)',
+        [POST_ID, CASE_AMOUNT, CASE_COUNT, CASE_COMMENT, CREATED_DATE], (err, result) => {
+
+            client.end();
+
+            if (err) {
+                return err.stack
+            }
+
+            return res.json(result.rowCount)
+        })
 });
 
 var port = process.env.PORT || 3001;

@@ -4,51 +4,52 @@ import { withStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Chip from '@material-ui/core/Chip';
 
+import axios from 'axios';
 import { connect } from 'react-redux';
 import { compose } from "recompose";
 
-const data = [
-    { 'postName': '花蓮國安郵局', 'postID': '901' },
-    { 'postName': '花蓮舊車站郵局', 'postID': '1' },
-    { 'postName': '花蓮南京街郵局', 'postID': '2' },
-    { 'postName': '新城北埔郵局', 'postID': '4' },
-    { 'postName': '秀林天祥郵局', 'postID': '5' },
-    { 'postName': '新城郵局', 'postID': '6' },
-    { 'postName': '花蓮府前路郵局', 'postID': '7' },
-    { 'postName': '吉安郵局', 'postID': '8' },
-    { 'postName': '花蓮下美崙郵局', 'postID': '9' },
-    { 'postName': '吉安仁里郵局', 'postID': '10' },
+const staticData = [
+    { 'postname': '花蓮國安郵局', 'postid': '901', 'ischecked': false },
+    { 'postname': '花蓮舊車站郵局', 'postid': '1', 'ischecked': false },
+    { 'postname': '花蓮南京街郵局', 'postid': '2', 'ischecked': false },
+    { 'postname': '新城北埔郵局', 'postid': '4', 'ischecked': false },
+    { 'postname': '秀林天祥郵局', 'postid': '5', 'ischecked': false },
+    { 'postname': '新城郵局', 'postid': '6', 'ischecked': false },
+    { 'postname': '花蓮府前路郵局', 'postid': '7', 'ischecked': false },
+    { 'postname': '吉安郵局', 'postid': '8', 'ischecked': false },
+    { 'postname': '花蓮下美崙郵局', 'postid': '9', 'ischecked': false },
+    { 'postname': '吉安仁里郵局', 'postid': '10', 'ischecked': false },
 
-    { 'postName': '花蓮港務局郵局', 'postID': '11' },
-    { 'postName': '秀林和平郵局', 'postID': '12' },
-    { 'postName': '花蓮中華路郵局', 'postID': '13' },
-    { 'postName': '花蓮富國路郵局', 'postID': '14' },
-    { 'postName': '壽豐郵局', 'postID': '15' },
-    { 'postName': '壽豐豐田郵局', 'postID': '16' },
-    { 'postName': '壽豐志學郵局', 'postID': '17' },
-    { 'postName': '吉安宜昌郵局', 'postID': '18' },
-    { 'postName': '花蓮中山路郵局', 'postID': '19' },
-    { 'postName': '花蓮師院郵局', 'postID': '20' },
+    { 'postname': '花蓮港務局郵局', 'postid': '11', 'ischecked': false },
+    { 'postname': '秀林和平郵局', 'postid': '12', 'ischecked': false },
+    { 'postname': '花蓮中華路郵局', 'postid': '13', 'ischecked': false },
+    { 'postname': '花蓮富國路郵局', 'postid': '14', 'ischecked': false },
+    { 'postname': '壽豐郵局', 'postid': '15', 'ischecked': false },
+    { 'postname': '壽豐豐田郵局', 'postid': '16', 'ischecked': false },
+    { 'postname': '壽豐志學郵局', 'postid': '17', 'ischecked': false },
+    { 'postname': '吉安宜昌郵局', 'postid': '18', 'ischecked': false },
+    { 'postname': '花蓮中山路郵局', 'postid': '19', 'ischecked': false },
+    { 'postname': '花蓮師院郵局', 'postid': '20', 'ischecked': false },
 
-    { 'postName': '吉安太昌郵局', 'postID': '21' },
-    { 'postName': '鳳林郵局', 'postID': '22' },
-    { 'postName': '鳳林萬榮郵局', 'postID': '23' },
-    { 'postName': '鳳林林榮郵局', 'postID': '24' },
-    { 'postName': '光復郵局', 'postID': '25' },
-    { 'postName': '豐濱郵局', 'postID': '27' },
-    { 'postName': '光復富田郵局', 'postID': '28' },
-    { 'postName': '瑞穗郵局', 'postID': '29' },
-    { 'postName': '瑞穗富源郵局', 'postID': '30' },
-    { 'postName': '玉里郵局', 'postID': '31' },
+    { 'postname': '吉安太昌郵局', 'postid': '21', 'ischecked': false },
+    { 'postname': '鳳林郵局', 'postid': '22', 'ischecked': false },
+    { 'postname': '鳳林萬榮郵局', 'postid': '23', 'ischecked': false },
+    { 'postname': '鳳林林榮郵局', 'postid': '24', 'ischecked': false },
+    { 'postname': '光復郵局', 'postid': '25', 'ischecked': false },
+    { 'postname': '豐濱郵局', 'postid': '27', 'ischecked': false },
+    { 'postname': '光復富田郵局', 'postid': '28', 'ischecked': false },
+    { 'postname': '瑞穗郵局', 'postid': '29', 'ischecked': false },
+    { 'postname': '瑞穗富源郵局', 'postid': '30', 'ischecked': false },
+    { 'postname': '玉里郵局', 'postid': '31', 'ischecked': false },
 
-    { 'postName': '玉里泰昌郵局', 'postID': '32' },
-    { 'postName': '卓溪郵局', 'postID': '33' },
-    { 'postName': '玉里三民郵局', 'postID': '34' },
-    { 'postName': '玉里新興郵局', 'postID': '35' },
-    { 'postName': '富里郵局', 'postID': '36' },
-    { 'postName': '富里東里郵局', 'postID': '37' },
-    { 'postName': '花蓮空軍基地郵局', 'postID': '38' },
-    { 'postName': '壽豐東華大學郵局', 'postID': '39' },
+    { 'postname': '玉里泰昌郵局', 'postid': '32', 'ischecked': false },
+    { 'postname': '卓溪郵局', 'postid': '33', 'ischecked': false },
+    { 'postname': '玉里三民郵局', 'postid': '34', 'ischecked': false },
+    { 'postname': '玉里新興郵局', 'postid': '35', 'ischecked': false },
+    { 'postname': '富里郵局', 'postid': '36', 'ischecked': false },
+    { 'postname': '富里東里郵局', 'postid': '37', 'ischecked': false },
+    { 'postname': '花蓮空軍基地郵局', 'postid': '38', 'ischecked': false },
+    { 'postname': '壽豐東華大學郵局', 'postid': '39', 'ischecked': false },
 ];
 
 const styles = theme => ({
@@ -57,7 +58,10 @@ const styles = theme => ({
         flexWrap: 'wrap',
         justifyContent: 'left',
     },
-    avatar: {
+    avatarNoChecked: {
+        backgroundColor: '#ff8a65',
+    },
+    avatarChecked: {
         backgroundColor: '#c5e1a5',
     },
     chip: {
@@ -77,9 +81,39 @@ class ChipComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: []
+            data: staticData
         };
         this.handleClick = this.handleClick.bind(this);
+        this.tick();
+    }
+
+    componentDidMount() {
+        if (this.props.mode === 'dashboard') {
+            this.timerID = setInterval(
+                () => this.tick(), 5000
+            );
+        }
+    }
+
+    tick() {
+        var dateTime = new Date();
+        dateTime.setHours(dateTime.getHours()+8);
+        const todayDateTime = dateTime.toISOString().slice(0, 19).replace('T', ' ');
+
+        axios.get('/api/v1/postoffice',{
+            params: {
+                created_date: todayDateTime.substring(0,10)
+            }
+        })
+            .then(res => {
+                this.setState({
+                    data: res.data
+                });
+            })
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timerID);
     }
 
     handleClick(postName, postID) {
@@ -88,28 +122,29 @@ class ChipComponent extends React.Component {
             postName: postName,
             postID: postID,
         });
+
     }
 
     render() {
         const { classes } = this.props;
-
-        const element = Object.keys(data).map((key, index) => {
-            return (
-                <div key={index} className={classes.container}>
-                    <Chip
-                        clickable={true}
-                        avatar={<Avatar className={classes.avatar}>{data[key].postID}</Avatar>}
-                        label={data[key].postName}
-                        className={classes.chip}
-                        onClick={() => this.handleClick(data[key].postName, data[key].postID)}
-                    />
-                </div>
-            )
-        });
-
+        var data = this.state.data;
         return (
             <div className={classes.root}>
-                {element}
+                {
+                    Object.keys(data).map((key, index) => {
+                        return (
+                            <div key={index} className={classes.container}>
+                                <Chip
+                                    clickable={true}
+                                    avatar={<Avatar className={this.props.mode === 'dashboard' && data[key].ischecked ? classes.avatarNoChecked : classes.avatarChecked}> {data[key].postid}</Avatar>}
+                                    label={data[key].postname}
+                                    className={classes.chip}
+                                    onClick={() => this.handleClick(data[key].postname, data[key].postid)}
+                                />
+                            </div>
+                        )
+                    })
+                }
             </div>
         );
     }
@@ -127,3 +162,4 @@ ChipComponent.propTypes = {
 };
 
 export default compose(connect(mapStateToProps), withStyles(styles, { withTheme: true }))(ChipComponent);
+

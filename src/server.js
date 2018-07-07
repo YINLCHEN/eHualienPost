@@ -4,8 +4,10 @@ const path = require('path');
 const { Pool, Client } = require('pg');
 const connectionString = process.env.DATABASE_URL || 'postgres://eqnmvgipewyrfb:75fd48a70d531caaaac72395503be88acbfb7a99afb9b92c42d7879052967e26@ec2-54-243-193-227.compute-1.amazonaws.com:5432/d25naprtgh9cku?ssl=true';
 
+app.use(express.static('build'));
+
 app.get('/', function (req, res) {
-    res.sendFile(path.join('./index.html'));
+    res.sendFile(path.join('index.html'));
 });
 
 app.get('/api/v1/postoffice/', function (req, res) {

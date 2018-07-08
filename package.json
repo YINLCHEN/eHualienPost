@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@amcharts/amcharts3-react": "^3.1.0",
     "@material-ui/core": "^1.3.1",
     "@material-ui/icons": "^1.1.0",
+    "amcharts3": "^3.21.13",
     "autoprefixer": "7.1.6",
     "axios": "^0.18.0",
     "babel-core": "6.26.0",
@@ -45,6 +47,7 @@
     "react-number-format": "^3.4.2",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.3.1",
+    "react-swipeable-views": "^0.12.14",
     "redux": "^4.0.0",
     "resolve": "1.6.0",
     "style-loader": "0.19.0",

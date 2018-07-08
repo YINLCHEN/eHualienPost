@@ -99,6 +99,10 @@ class ResponsiveDrawer extends React.Component {
         this.setState({ mobileOpen: !this.state.mobileOpen });
     };
 
+    handleItemClick = (e) => {
+        this.setState({ mobileOpen: false });
+    }
+
     render() {
         const { classes, theme } = this.props;
 
@@ -106,7 +110,7 @@ class ResponsiveDrawer extends React.Component {
             <div>
                 <div className={classes.toolbar} />
                 <Divider />
-                <List>{mailFolderListItems}</List>
+                <List onClick={this.handleItemClick}>{mailFolderListItems}</List>
                 <Divider />
                 <List>{otherMailFolderListItems}</List>
             </div>

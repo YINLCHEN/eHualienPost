@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Chip from '@material-ui/core/Chip';
 
+import axios from 'axios';
 import { connect } from 'react-redux';
 import { compose } from "recompose";
 
@@ -83,14 +84,39 @@ class ChipComponent extends React.Component {
             data: staticData
         };
         this.handleClick = this.handleClick.bind(this);
+        this.tick();
+    }
+
+    componentDidMount() {
+        if (this.props.mode === 'dashboard') {
+            this.timerID = setInterval(
+                () => this.tick(), 5000
+            );
+        }
+    }
+
+    tick() {
+        var dateTime = new Date();
+        dateTime.setHours(dateTime.getHours()+8);
+        const todayDateTime = dateTime.toISOString().slice(0, 19).replace('T', ' ');
+
+        axios.get('/api/v1/postoffice',{
+            params: {
+                created_date: todayDateTime.substring(0,10)
+            }
+        })
+            .then(res => {
+                this.setState({
+                    data: res.data
+                });
+            })
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.timerID);
     }
 
     handleClick(postName, postID) {
-        this.props.dispatch({
-            type: 'ADD_Office',
-            postName: postName,
-            postID: postID,
-        });
     }
 
     render() {
@@ -104,7 +130,7 @@ class ChipComponent extends React.Component {
                             <div key={index} className={classes.container}>
                                 <Chip
                                     clickable={true}
-                                    avatar={<Avatar className={this.props.mode === 'dashboard' && data[key].ischecked ? classes.avatarNoChecked : classes.avatarChecked}> {data[key].postid}</Avatar>}
+                                    avatar={<Avatar className={this.props.mode === 'dashboard' && !data[key].ischecked ? classes.avatarNoChecked : classes.avatarChecked}> {data[key].postid}</Avatar>}
                                     label={data[key].postname}
                                     className={classes.chip}
                                     onClick={() => this.handleClick(data[key].postname, data[key].postid)}

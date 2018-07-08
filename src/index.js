@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './css/index.css';
 import registerServiceWorker from './registerServiceWorker';
 import { BrowserRouter as Router } from 'react-router-dom';
-import ResponsiveDrawer from './components/Header/ResponsiveDrawer';
+import ResponsiveDrawer from './components/HeaderBar/ResponsiveDrawer';
 import { createStore } from 'redux'
 import { Provider } from 'react-redux';
 import reducer from './reducers'
@@ -13,10 +13,7 @@ const store = createStore(reducer)
 const theme = createMuiTheme({
     typography: {
       fontFamily: [
-        'Microsoft JhengHei',
-        'Segoe UI',
-        'Roboto',
-        'Helvetic'
+        'Microsoft JhengHei'
       ].join(',')
     }
 });

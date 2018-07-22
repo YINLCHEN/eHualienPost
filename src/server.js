@@ -16,7 +16,7 @@ app.get('/api/v1/postoffice/', function (req, res) {
     });
 
     client.connect();
-    const sql = 
+    const sql =
         `SELECT 
             T1.postid, 
             T1.postname, 
@@ -34,7 +34,66 @@ app.get('/api/v1/postoffice/', function (req, res) {
                     WHERE post_id = daily.post_id
                     )
             ) AS T2 on T1.postid = T2.post_id;`;
-    const query = client.query(sql,[req.query.created_date], (err, clientRes) => {
+
+    const query = client.query(sql, [req.query.created_date], (err, clientRes) => {
+
+        client.end();
+
+        if (err) {
+            return err.stack
+        }
+
+        return res.json(clientRes.rows)
+    })
+});
+
+app.get('/api/v1/getDashboardInfo/', function (req, res) {
+    const client = new Client({
+        connectionString: connectionString,
+    });
+
+    client.connect();
+    const sql =
+        `
+        SELECT post_id, office.postname, case_amount, case_count, case_comment, created_date
+        FROM "public"."dailyinput" daily
+        INNER JOIN postoffice office on office.postid = daily.post_id
+        WHERE to_char(created_date, 'YYYY-MM-DD') = $1
+               AND created_date = (
+                   SELECT MAX(created_date)
+                     FROM "public"."dailyinput"
+                    WHERE post_id = daily.post_id
+               )
+        ORDER BY case_amount desc`;
+
+    const query = client.query(sql, [req.query.created_date], (err, clientRes) => {
+
+        client.end();
+
+        if (err) {
+            return err.stack
+        }
+
+        return res.json(clientRes.rows)
+    })
+});
+
+app.get('/api/v1/getMonthData', function (req, res) {
+    const client = new Client({
+        connectionString: connectionString,
+    });
+
+    client.connect();
+    const sql =
+        `
+        SELECT post_id, office.postname, SUM(case_amount) case_amount, SUM(case_count) case_count
+        FROM "public"."dailydata" daily
+        INNER JOIN postoffice office on office.postid = daily.post_id
+        WHERE to_char(created_date, 'YYYY-MM') = $1
+        GROUP BY daily.post_id, office.postname, daily.case_amount, daily.case_count
+        ORDER BY case_amount desc`;
+
+    const query = client.query(sql, [req.query.created_date], (err, clientRes) => {
 
         client.end();
 
@@ -52,7 +111,7 @@ app.get('/api/v1/insertDailyInput/', function (req, res) {
     var CASE_COUNT = Number(req.query.case_count);
     var CASE_COMMENT = req.query.case_comment;
     var CREATED_DATE = req.query.created_date;
-    console.log(CREATED_DATE)
+
     const client = new Client({
         connectionString: connectionString,
     });

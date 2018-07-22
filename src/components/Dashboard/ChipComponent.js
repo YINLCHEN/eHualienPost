@@ -117,6 +117,11 @@ class ChipComponent extends React.Component {
     }
 
     handleClick(postName, postID) {
+        this.props.dispatch({
+            type: 'ADD_Office',
+            postName: postName,
+            postID: postID,
+        });
     }
 
     render() {

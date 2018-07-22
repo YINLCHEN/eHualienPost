@@ -63,7 +63,8 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
     "server": "node src/server.js",
-    "client": "node scripts/start.js"
+    "client": "node scripts/start.js",
+    "batch": "node dailyDataScheduler.js"
   },
   "proxy": "http://localhost:3001/",
   "jest": {

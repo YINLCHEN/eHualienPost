@@ -86,11 +86,11 @@ app.get('/api/v1/getMonthData', function (req, res) {
     client.connect();
     const sql =
         `
-        SELECT post_id, office.postname, SUM(case_amount) case_amount, SUM(case_count) case_count
+        SELECT post_id, office.postname, SUM(case_amount) case_amount, SUM(case_count) case_count, created_date
         FROM "public"."dailydata" daily
         INNER JOIN postoffice office on office.postid = daily.post_id
         WHERE to_char(created_date, 'YYYY-MM') = $1
-        GROUP BY daily.post_id, office.postname, daily.case_amount, daily.case_count
+        GROUP BY daily.post_id, office.postname, daily.case_amount, daily.case_count, created_date
         ORDER BY case_amount desc`;
 
     const query = client.query(sql, [req.query.created_date], (err, clientRes) => {
@@ -131,5 +131,6 @@ app.get('/api/v1/insertDailyInput/', function (req, res) {
         })
 });
 
+process.env.TZ = 'Asia/Taipei';
 var port = process.env.PORT || 3001;
 app.listen(port, "0.0.0.0");

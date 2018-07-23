@@ -16,7 +16,6 @@ import Accessibility from "@material-ui/icons/Accessibility";
 import Update from "@material-ui/icons/Update";
 import BugReport from "@material-ui/icons/BugReport";
 import Code from "@material-ui/icons/Code";
-import Cloud from "@material-ui/icons/Cloud";
 // core components
 import GridItem from "components/Grid/GridItem.jsx";
 import Table from "components/Table/Table.jsx";
@@ -145,7 +144,9 @@ class App extends React.Component {
                     array.push(data[ikey].postname);
                     array.push(data[ikey].case_amount.toString());
                     array.push(data[ikey].case_count.toString());
-                    array.push(todayDateTime.substring(0, 7));
+
+                    var d = new Date(data[ikey].created_date);
+                    array.push(d.toLocaleDateString() + ' ' + d.toLocaleTimeString());
 
                     arrayList.push(array);
 
@@ -332,22 +333,6 @@ class App extends React.Component {
                                             tableHeaderColor="warning"
                                             tableHead={["支", "支局", "月營業額", "月件數", "資料時間"]}
                                             tableData={this.state.monthData}
-                                        />
-                                    )
-                                },
-                                {
-                                    tabName: "年統計",
-                                    tabIcon: Cloud,
-                                    tabContent: (
-                                        <Table
-                                            tableHeaderColor="warning"
-                                            tableHead={["ID", "Name", "Salary", "Country"]}
-                                            tableData={[
-                                                ["1", "Dakota Rice", "$12356,738", "Niger"],
-                                                ["2", "Minerva Hooper", "$2389,789", "Curaçao"],
-                                                ["3", "Sage Rodriguez", "$2315,142", "Netherlands"],
-                                                ["4", "Philip Chaney", "$3230,735", "Korea, South"]
-                                            ]}
                                         />
                                     )
                                 }

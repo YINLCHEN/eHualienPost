@@ -12,14 +12,14 @@ function run() {
     });
 
     client.connect();
-    
-    const sql =
-        `INSERT INTO "public"."dailydata" (post_id, case_amount, case_count, created_date)
 
-        SELECT post_id, case_amount, case_count, current_timestamp + INTERVAL '8 hour'
+    const sql =
+        `
+        INSERT INTO "public"."dailydata" (post_id, case_amount, case_count, created_date)
+        SELECT post_id, case_amount, case_count, current_timestamp
           FROM "public"."dailyinput" daily
          INNER JOIN postoffice office on office.postid = daily.post_id
-         WHERE to_char(created_date, 'YYYY-MM-DD') =  to_char(CURRENT_DATE + INTERVAL '8 hour', 'YYYY-MM-DD')
+         WHERE to_char(created_date, 'YYYY-MM-DD') =  to_char(CURRENT_DATE, 'YYYY-MM-DD')
            AND created_date = (
                     SELECT MAX(created_date)
                       FROM "public"."dailyinput"

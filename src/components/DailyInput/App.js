@@ -87,7 +87,7 @@ class App extends React.Component {
 
         if (this.state.activeStep === 2) {
             var dateTime = new Date();
-            dateTime.setHours(dateTime.getHours());
+            dateTime.setHours(dateTime.getHours() + 8);
             const todayDateTime = dateTime.toISOString().slice(0, 19).replace('T', ' ');
 
             axios.get('/api/v1/insertDailyInput/', {

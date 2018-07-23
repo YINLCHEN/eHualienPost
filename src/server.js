@@ -86,11 +86,11 @@ app.get('/api/v1/getMonthData', function (req, res) {
     client.connect();
     const sql =
         `
-        SELECT post_id, office.postname, SUM(case_amount) case_amount, SUM(case_count) case_count, created_date
+        SELECT post_id, office.postname, SUM(case_amount) case_amount, SUM(case_count) case_count,  (select max(created_date) from "public"."dailydata") created_date
         FROM "public"."dailydata" daily
         INNER JOIN postoffice office on office.postid = daily.post_id
         WHERE to_char(created_date, 'YYYY-MM') = $1
-        GROUP BY daily.post_id, office.postname, daily.case_amount, daily.case_count, created_date
+        GROUP BY daily.post_id, office.postname, daily.case_amount, daily.case_count
         ORDER BY case_amount desc`;
 
     const query = client.query(sql, [req.query.created_date], (err, clientRes) => {

@@ -131,6 +131,96 @@ app.get('/api/v1/insertDailyInput/', function (req, res) {
         })
 });
 
+app.get('/api/v1/getChartsData', function (req, res) {
+    const client = new Client({
+        connectionString: connectionString,
+    });
+
+    var CREATED_DATE = req.query.created_date;
+    var ClickPostID = req.query.clickPostID;
+
+    client.connect();
+
+    const sql =
+    `
+    SELECT SUM(case_amount) total_case_amount, SUM(case_count) total_case_count, TO_CHAR(created_date, 'YYYY-MM-DD') created_date
+      FROM "public"."dailydata"
+     WHERE TO_CHAR(created_date, 'YYYY-MM') = $1
+     GROUP BY TO_CHAR(created_date, 'YYYY-MM-DD')
+     UNION
+    SELECT SUM(case_amount) total_case_amount, SUM(case_count) total_case_count, TO_CHAR(created_date, 'YYYY-MM-DD') created_date
+      FROM "public"."dailyinput" data
+     WHERE TO_CHAR(created_date, 'YYYY-MM-DD') = $2
+       AND created_date = (
+           SELECT MAX(created_date)
+             FROM "public"."dailyinput"
+            WHERE post_id = data.post_id
+    )
+     GROUP BY TO_CHAR(created_date, 'YYYY-MM-DD')
+     ORDER BY created_date
+    `;
+
+    const sql2 =
+    `
+    select total_case_amount, total_case_count, case_amount, case_count, data.created_date
+    from (
+         SELECT SUM(case_amount) total_case_amount, SUM(case_count) total_case_count, TO_CHAR(created_date, 'YYYY-MM-DD') created_date
+       FROM "public"."dailydata"
+      WHERE TO_CHAR(created_date, 'YYYY-MM') = $1
+      GROUP BY TO_CHAR(created_date, 'YYYY-MM-DD')
+     UNION
+     SELECT SUM(case_amount) total_case_amount, SUM(case_count) total_case_count, TO_CHAR(created_date, 'YYYY-MM-DD') created_date
+       FROM "public"."dailyinput" data
+      WHERE TO_CHAR(created_date, 'YYYY-MM-DD') = $2
+        AND created_date = (
+                 SELECT MAX(created_date)
+                     FROM "public"."dailyinput"
+                     WHERE post_id = data.post_id
+             )
+      GROUP BY TO_CHAR(created_date, 'YYYY-MM-DD')
+      ) 
+      data
+      LEFT JOIN 
+      (
+         SELECT SUM(case_amount) case_amount, SUM(case_count) case_count, TO_CHAR(created_date, 'YYYY-MM-DD') created_date
+           FROM "public"."dailydata"
+          WHERE TO_CHAR(created_date, 'YYYY-MM') = $1
+            AND post_id = $3
+          GROUP BY TO_CHAR(created_date, 'YYYY-MM-DD')
+          UNION
+          SELECT case_amount, case_count, TO_CHAR(created_date, 'YYYY-MM-DD') created_date
+            FROM "public"."dailyinput"
+           WHERE TO_CHAR(created_date, 'YYYY-MM-DD') = $2
+            AND created_date = (
+                     SELECT MAX(created_date)
+                       FROM "public"."dailyinput"
+                      WHERE post_id = $3
+                 )
+      ) officedata on officedata.created_date = data.created_date
+      ORDER BY data.created_date
+    `;
+
+    var inputSQL = sql;
+    var inputARRAY = [CREATED_DATE.substring(0, 7), CREATED_DATE];
+    
+    if(ClickPostID !== '0'){
+        inputSQL = sql2;
+        inputARRAY = [CREATED_DATE.substring(0, 7), CREATED_DATE, ClickPostID];
+    }
+
+    const query = client.query(inputSQL, inputARRAY, (err, clientRes) => {
+
+        client.end();
+
+        if (err) {
+            return err.stack
+        }
+
+        return res.json(clientRes.rows)
+    })
+    
+});
+
 process.env.TZ = 'Asia/Taipei';
 var port = process.env.PORT || 3001;
 app.listen(port, "0.0.0.0");

@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import AmCharts from "@amcharts/amcharts3-react";
+import axios from 'axios';
+
 import 'css/Charts.css';
 
+/*
 // Generate random data
 function generateData() {
     var chartData = [{
@@ -121,7 +124,7 @@ function generateData() {
 
     return chartData;
 }
-
+*/
 
 // Component which contains the dynamic state for the chart
 class AnimationCharts extends Component {
@@ -129,23 +132,123 @@ class AnimationCharts extends Component {
         super(props);
 
         this.state = {
-            dataProvider: generateData(),
-            timer: null
+            data: [],
+            dataProvider: [],
+            timer: null,
+            clickPostID: props.clickPostID
         };
+
+        this.getChartsData();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.clickPostID !== undefined && this.state.clickPostID !== nextProps.clickPostID) {
+            this.setState({
+                clickPostID: nextProps.clickPostID,
+                clickPostName: nextProps.clickPostName
+            })
+            this.getChartsData();
+        }
     }
 
     componentDidMount() {
         this.setState({
-            timer: setInterval(() => {
-                this.setState({
-                    dataProvider: generateData()
-                });
-            }, 3000)
+            timer: setInterval(
+                () => this.getChartsData(), 5000
+            )
         });
     }
 
     componentWillUnmount() {
         clearInterval(this.state.timer);
+    }
+
+    getChartsData() {
+        var dateTime = new Date();
+        dateTime.setHours(dateTime.getHours() + 8);
+        const todayDateTime = dateTime.toISOString().slice(0, 19).replace('T', ' ');
+
+        axios.get('/api/v1/getChartsData', {
+            params: {
+                created_date: todayDateTime.substring(0, 10),
+                clickPostID: this.state.clickPostID
+            }
+        })
+            .then(res => {
+                const data = res.data;
+                let arrayList = [];
+
+                Object.keys(data).map((ikey, index) => {
+
+                    var json = {};
+                    if (this.state.clickPostID === 0) {
+                        if (index + 1 === data.length) {
+                            json = {
+                                "date": data[ikey].created_date,
+                                "distance": data[ikey].total_case_amount,
+                                "townName": "全部支局",
+                                "townName2": "",
+                                "townSize": 25,
+                                "alpha": 0.4,
+                                "duration": data[ikey].total_case_count,
+                                "bulletClass": "lastBullet"
+                            }
+                        }
+                        else {
+                            json = {
+                                "date": data[ikey].created_date,
+                                "distance": data[ikey].total_case_amount,
+                                "townName": "全部支局",
+                                "townName2": "",
+                                "townSize": 25,
+                                "duration": data[ikey].total_case_count
+                            }
+                        }
+                    }
+                    else {
+                        if (index + 1 === data.length) {
+                            json = {
+                                "date": data[ikey].created_date,
+                                "distance": data[ikey].total_case_amount,
+                                "townName": this.state.clickPostName,
+                                "townName2": "",
+                                "townSize": 10,
+                                "latitude": data[ikey].case_amount,
+                                "alpha": 0.4,
+                                "duration": data[ikey].total_case_count,
+                                "bulletClass": "lastBullet"
+                            }
+                        }
+                        else {
+                            json = {
+                                "date": data[ikey].created_date,
+                                "distance": data[ikey].total_case_amount,
+                                "townName": this.state.clickPostName,
+                                "townName2": "",
+                                "townSize": 10,
+                                "latitude": data[ikey].case_amount,
+                                "duration": data[ikey].total_case_count
+                            }
+                        }
+                    }
+
+                    arrayList.push(json);
+
+                    return null;
+                });
+
+                var currentDate = new Date();
+                currentDate.setHours(currentDate.getHours() + 8);
+                currentDate.setDate(currentDate.getDate() + 1);
+
+                arrayList.push({
+                    "date": currentDate.toISOString().slice(0, 10).replace('T', ' ')
+                });
+
+                this.setState({
+                    dataProvider: arrayList
+                })
+            })
     }
 
     render() {
@@ -155,7 +258,6 @@ class AnimationCharts extends Component {
             "hideCredits": true,
             "dataDateFormat": "YYYY-MM-DD",
             "dataProvider": this.state.dataProvider,
-
             "addClassNames": true,
             "startDuration": 1,
             //"color": "#FFFFFF",
@@ -187,7 +289,7 @@ class AnimationCharts extends Component {
 
             "valueAxes": [{
                 "id": "a1",
-                "title": "distance",
+                "title": "營業額",
                 "gridAlpha": 0,
                 "axisAlpha": 0
             }, {
@@ -198,36 +300,30 @@ class AnimationCharts extends Component {
                 "labelsEnabled": false
             }, {
                 "id": "a3",
-                "title": "duration",
+                "title": "件數",
                 "position": "right",
                 "gridAlpha": 0,
                 "axisAlpha": 0,
                 "inside": true,
-                "duration": "mm",
-                "durationUnits": {
-                    "DD": "d. ",
-                    "hh": "h ",
-                    "mm": "min",
-                    "ss": ""
-                }
             }],
+
             "graphs": [{
                 "id": "g1",
                 "valueField": "distance",
-                "title": "distance",
+                "title": "營業額",
                 "type": "column",
                 "fillAlphas": 0.9,
                 "valueAxis": "a1",
-                "balloonText": "[[value]] miles",
-                "legendValueText": "[[value]] mi",
-                "legendPeriodValueText": "total: [[value.sum]] mi",
+                "balloonText": "總營業額＄[[value]]",
+                "legendValueText": "＄[[value]]",
+                "legendPeriodValueText": "＄[[value.sum]]",
                 "lineColor": "#263138",
                 "alphaField": "alpha"
             }, {
                 "id": "g2",
                 "valueField": "latitude",
                 "classNameField": "bulletClass",
-                "title": "latitude/city",
+                "title": "支局",
                 "type": "line",
                 "valueAxis": "a2",
                 "lineColor": "#786c56",
@@ -242,17 +338,17 @@ class AnimationCharts extends Component {
                 "bulletColor": "#000000",
                 "labelText": "[[townName2]]",
                 "labelPosition": "right",
-                "balloonText": "latitude:[[value]]",
+                "balloonText": this.state.clickPostName + "＄[[value]]",
                 "showBalloon": true,
                 "animationPlayed": true
             }, {
                 "id": "g3",
-                "title": "duration",
+                "title": "件數",
                 "valueField": "duration",
                 "type": "line",
                 "valueAxis": "a3",
                 "lineColor": "#ff5755",
-                "balloonText": "[[value]]",
+                "balloonText": "總件數 [[value]]",
                 "lineThickness": 1,
                 "legendValueText": "[[value]]",
                 "bullet": "square",
@@ -262,7 +358,6 @@ class AnimationCharts extends Component {
                 "dashLengthField": "dashLength",
                 "animationPlayed": true
             }],
-
             "chartCursor": {
                 "zoomable": false,
                 "categoryBalloonDateFormat": "DD",

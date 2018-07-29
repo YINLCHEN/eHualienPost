@@ -42,6 +42,7 @@ class App extends React.Component {
         this.state = {
             data: [],
             clickPostID: 0,
+            clickPostName: '',
             yesterdayData: [],
             monthData: [],
         }
@@ -76,7 +77,8 @@ class App extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.PostID !== undefined) {
             this.setState({
-                clickPostID: nextProps.PostID
+                clickPostID: nextProps.PostID,
+                clickPostName: nextProps.PostName
             })
         }
     }
@@ -290,7 +292,7 @@ class App extends React.Component {
                     </GridItem>
                 </Grid>
 
-                <AnimationCharts />
+                <AnimationCharts clickPostID={this.state.clickPostID} clickPostName={this.state.clickPostName} />
 
                 <Grid container>
                     <GridItem xs={12} sm={12} md={6}>

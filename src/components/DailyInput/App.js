@@ -45,7 +45,7 @@ function getSteps() {
 function getStepContent(step, classes) {
     switch (step) {
         case 0:
-            return <ChipComponent mode="dailyinput" />;
+            return <ChipComponent mode="dashboard" />;
         case 1:
             return <AmountComponent />;
         case 2:

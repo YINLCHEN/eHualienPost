@@ -3,6 +3,7 @@ const app = express();
 const path = require('path');
 const { Pool, Client } = require('pg');
 const connectionString = process.env.DATABASE_URL || 'postgres://eqnmvgipewyrfb:75fd48a70d531caaaac72395503be88acbfb7a99afb9b92c42d7879052967e26@ec2-54-243-193-227.compute-1.amazonaws.com:5432/d25naprtgh9cku?ssl=true';
+require('newrelic');
 
 app.use(express.static('build'));
 
@@ -86,12 +87,16 @@ app.get('/api/v1/getMonthData', function (req, res) {
     client.connect();
     const sql =
         `
-        SELECT post_id, office.postname, SUM(case_amount) case_amount, SUM(case_count) case_count,  (select max(created_date) from "public"."dailydata") created_date
-        FROM "public"."dailydata" daily
-        INNER JOIN postoffice office on office.postid = daily.post_id
-        WHERE to_char(created_date, 'YYYY-MM') = $1
-        GROUP BY daily.post_id, office.postname, daily.case_amount, daily.case_count
-        ORDER BY case_amount desc`;
+        SELECT data.post_id, office.postname, data.case_amount, data.case_count, data.created_date
+          FROM "public"."postoffice" office
+         INNER JOIN 
+            (
+                SELECT post_id, SUM(case_amount) case_amount, SUM(case_count) case_count,  (select max(created_date) from "public"."dailydata") created_date
+                  FROM "public"."dailydata" daily
+                 WHERE to_char(created_date, 'YYYY-MM') = $1
+                 GROUP BY daily.post_id
+            ) data on data.post_id = office.postid
+         ORDER BY case_amount desc`;
 
     const query = client.query(sql, [req.query.created_date], (err, clientRes) => {
 

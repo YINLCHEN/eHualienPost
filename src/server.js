@@ -64,6 +64,7 @@ app.get('/api/v1/getDashboardInfo/', function (req, res) {
                    SELECT MAX(created_date)
                      FROM "public"."dailyinput"
                     WHERE post_id = daily.post_id
+                      AND to_char(created_date, 'YYYY-MM-DD') = $1
                )
         ORDER BY case_amount desc`;
 

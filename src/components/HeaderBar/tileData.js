@@ -3,9 +3,9 @@ import React from 'react';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import StarIcon from '@material-ui/icons/Star';
-import ReportIcon from '@material-ui/icons/Report';
+import AddBoxIcon from '@material-ui/icons/AddBox';
+import DashboardIcon from '@material-ui/icons/Dashboard';
+import CodeIcon from '@material-ui/icons/Code';
 
 import { Link } from 'react-router-dom'
 
@@ -13,13 +13,13 @@ export const mailFolderListItems = (
     <div>
         <ListItem button component={Link} to="/dailyinput">
             <ListItemIcon>
-                <InboxIcon />
+                <AddBoxIcon />
             </ListItemIcon>
             <ListItemText primary="新增每日戰情" />
         </ListItem>
         <ListItem button component={Link} to="/dashboard">
             <ListItemIcon>
-                <StarIcon />
+                <DashboardIcon />
             </ListItemIcon>
             <ListItemText primary="Dashboard" />
         </ListItem>
@@ -30,9 +30,9 @@ export const otherMailFolderListItems = (
     <div>
         <ListItem button>
             <ListItemIcon>
-                <ReportIcon />
+                <CodeIcon />
             </ListItemIcon>
-            <ListItemText primary="YINLCHEN" />
+            <ListItemText secondary="Developed by Chen Yin Lin"/>
         </ListItem>
     </div>
 );
